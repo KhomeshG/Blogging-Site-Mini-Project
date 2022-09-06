@@ -15,4 +15,10 @@ router.post("/authors", authorController.authors);
 
 router.post("/blogs", blogController.blogs);
 
+//Create put API
+
+router.put("/blogs/:blogId", blogController.blogsUpdate);
+
+//deleteApi
+router.delete("/blogs", blogController.deletedByQuery);
 module.exports = router;
