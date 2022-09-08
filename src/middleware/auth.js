@@ -30,7 +30,7 @@ exports.authentication = function (req, res, next) {
   }
 };
 
-//Only For Path
+//Only For Path And Delete
 
 exports.blogIdPlusAuthorIdCheck = async function (req, res, next) {
   try {
