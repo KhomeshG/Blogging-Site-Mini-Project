@@ -35,7 +35,7 @@ const authors = async function (req, res) {
     if (!/^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$/.test(data.email)) {
       res.status(400).send({
         status: false,
-        message: `Email should be a valid email address`,
+        message: "Email should be a valid email address",
       });
       return;
     }
@@ -58,12 +58,4 @@ const authors = async function (req, res) {
   }
 };
 
-
-
-  
-
-
-
-
 module.exports.authors = authors;
-
