@@ -209,68 +209,90 @@ const deleteBlogById = async function (req, res) {
 // -------------DELETE BY QUERY PARAMS --------------
 const deleteblog = async function (req, res) {
   try {
-    let authorId = req.query.authorId;
-    let categoryname = req.query.category;
-    let tagname = req.query.tags;
-    let subcategoryname = req.query.subcategory;
-    let unpublished = req.query.isPublished;
-
-    //let Blog = await blogModel.findById(authorId);
-
-    if (authorId) {
-      let deleteblog = await blogModel.updateMany(
-        { authorId: authorId },
-        { isDeleted: true },
-        { new: true }
-      );
-
-      return res.status(200).send({ status: true, data: deleteblog });
+    //new---------------new--------new
+    let blogData = await blogModel.find({
+      $or: [
+        {
+          authorId: req.query.authorId,
+        },
+        { category: req.query.category },
+        { tags: req.query.tags },
+        { subcategory: req.query.subcategory },
+        { isPublished: req.query.isPublished },
+      ],
+    });
+    if (blogData == 0) {
+      return res.status(400).send({ status: false, msg: "No Data Matched" });
     }
+    let isDeletedTrue = await blogModel.updateMany(
+      { blogData },
+      { isDeleted: true },
+      { new: true }
+    );
 
-    if (categoryname) {
-      let deleteblog = await blogModel.updateMany(
-        { category: categoryname },
-        { isDeleted: true },
-        { new: true }
-      );
-
-      return res.status(200).send({ status: true, data: deleteblog });
-    }
-
-    if (tagname) {
-      let deleteblog = await blogModel.updateMany(
-        { tags: tagname },
-        { isDeleted: true },
-        { new: true }
-      );
-
-      return res.status(200).send({ status: true, data: deleteblog });
-    }
-
-    if (subcategoryname) {
-      let deleteblog = await blogModel.updateMany(
-        { subcategory: categoryname },
-        { isDeleted: true },
-        { new: true }
-      );
-
-      return res.status(200).send({ status: true, data: deleteblog });
-    }
-
-    if (unpublished) {
-      let deleteblog = await blogModel.updateMany(
-        { isPublished: unpublished },
-        { isDeleted: true },
-        { new: true }
-      );
-
-      return res.status(200).send({ status: true, data: deleteblog });
-    }
+    return res.status(200).send({ status: true, data: isDeletedTrue });
   } catch (error) {
     return res.status(500).send({ status: false, error: error.message });
   }
+  //new---------------new--------new
+  //new---------------new--------new
 };
 
 module.exports.getblogs = getblogs;
 module.exports.deleteBlogById = deleteBlogById;
 module.exports.deleteblog = deleteblog;
+
+// let authorId = req.query.authorId;
+//     let categoryname = req.query.category;
+//     let tagname = req.query.tags;
+//     let subcategoryname = req.query.subcategory;
+//     let unpublished = req.query.isPublished;
+
+// let Blog = await blogModel.findById(authorId);
+
+// if (authorId) {
+//   let isDeletedTrue = await blogModel.updateMany(
+//     { authorId: authorId },
+//     { isDeleted: true },
+//     { new: true }
+//   );
+
+//   //return res.status(200).send({ status: true, data: deleteblog });
+// }
+
+// if (categoryname) {
+//   let isDeletedTrue = await blogModel.updateMany(
+//     { category: categoryname },
+//     { isDeleted: true },
+//     { new: true }
+//   );
+
+//   //return res.status(200).send({ status: true, data: deleteblog });
+// }
+
+// if (tagname) {
+//   let isDeletedTrue = await blogModel.updateMany(
+//     { tags: tagname },
+//     { isDeleted: true },
+//     { new: true }
+//   );
+// }
+// // return res.status(200).send({ status: true, data: deleteblog });
+
+// if (subcategoryname) {
+//   let isDeletedTrue = await blogModel.updateMany(
+//     { subcategory: categoryname },
+//     { isDeleted: true },
+//     { new: true }
+//   );
+
+//   //return res.status(200).send({ status: true, data: deleteblog });
+// }
+
+// if (unpublished) {
+//   let isDeletedTrue = await blogModel.updateMany(
+//     { isPublished: unpublished },
+//     { isDeleted: true },
+//     { new: true }
+//   );
+// }

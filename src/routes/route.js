@@ -42,7 +42,7 @@ router.put(
 // Deleted by blogId
 router.delete(
   "/blogsby/:blogId",
-  // middleware.headerCheck,
+  middleware.headerCheck,
   middleware.blogIdPlusAuthorIdCheck,
   blogController.deleteBlogById
 );
@@ -50,8 +50,8 @@ router.delete(
 // Delete by blog queryparams
 router.delete(
   "/blogs",
-  //middleware.headerCheck,
-  middleware.authentication,
+  middleware.headerCheck,
+  //middleware.authentication,
   blogController.deleteblog
 );
 

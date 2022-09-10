@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const blogModel = require("../models/blogModel");
+//const logInController = require("../controllers/logInController");
 
 //for Token
 const logInController = require("../controllers/logInController");
@@ -7,6 +8,7 @@ const logInController = require("../controllers/logInController");
 exports.headerCheck = function (req, res, next) {
   try {
     let headerData = req.headers["x-api-key"];
+
     if (headerData === undefined) {
       return res.status(400).send({ status: false, msg: "Header Is Madtory" });
     } else {
@@ -22,10 +24,16 @@ exports.authentication = function (req, res, next) {
   try {
     let Token = req.headers["x-api-key"];
 
-    let tokenVerify = jwt.verify(Token, "FunctionUP-Project1-Group30");
+    try {
+      var tokenVerify = jwt.verify(Token, "FunctionUP-Project1-Group30");
+    } catch (err) {
+      return res.status(404).send({ status: false, msg: "Token is Not Valid" });
+    }
 
     if (tokenVerify.UserId != req.query.authorId) {
-      return res.status(403).send({ status: false, msg: "User is Imposter" });
+      return res
+        .status(403)
+        .send({ status: false, msg: "AuthorId is not Matched" });
     } else {
       next();
     }
@@ -40,7 +48,11 @@ exports.blogIdPlusAuthorIdCheck = async function (req, res, next) {
   try {
     let Token = req.headers["x-api-key"];
     //
-    let tokenVerify = jwt.verify(Token, "FunctionUP-Project1-Group30");
+    try {
+      var tokenVerify = jwt.verify(Token, "FunctionUP-Project1-Group30");
+    } catch (err) {
+      return res.status(404).send({ status: false, msg: "Token is Not Valid" });
+    }
     //
     if (!tokenVerify) {
       return res.status(401).send({ status: false, msg: "Token is invalide" });
