@@ -7,6 +7,8 @@ const isValid = function (value) {
   return true;
 };
 
+// Global Function
+
 const authors = async function (req, res) {
   try {
     let data = req.body;
@@ -26,9 +28,24 @@ const authors = async function (req, res) {
       return res.status(400).send({ status: false, msg: "lname is required" });
     }
 
+    const titleValidation = function (value) {
+      if (value === "Mr" || value === "Mrs" || value === "Miss") {
+        return false;
+      }
+      return true;
+    };
+    if (titleValidation(data.title)) {
+      return res.status(400).send({
+        status: false,
+        msg: "Accept Mr/Mrs/Miss Only",
+      });
+    }
     //Validating title(Madtory)
     if (!isValid(data.title)) {
-      return res.status(400).send({ status: false, msg: "title is required" });
+      return res.status(400).send({
+        status: false,
+        msg: "title is required (with Mr/Mrs/Miss) Only",
+      });
     }
 
     //Validating Email using regex(Madtory)

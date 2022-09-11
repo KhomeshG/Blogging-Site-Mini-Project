@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const blogModel = require("../models/blogModel");
 const authorModel = require("../models/authorModel");
 const moment = require("moment");
+const jwt = require("jsonwebtoken");
 
 //Globals
 
@@ -82,7 +83,7 @@ const getblogs = async function (req, res) {
     let category = req.query.category;
     let tags = req.query.tags;
     let subcategory = req.query.subcategory;
-    console.log(authorId);
+    //console.log(authorId);
     // applying filters
     //Returns all blogs in the collection that aren't deleted and are published
     if (authorId) {
@@ -99,12 +100,12 @@ const getblogs = async function (req, res) {
     }
 
     let savedData = await blogModel.find(obj);
-    if (savedData.length == 0) {
-      return res.status(404).send({
-        status: false,
-        msg: "blog not found / Maybe Bcz (its deleted or Not Published)",
-      });
-    }
+    // if (savedData.length == 0) {
+    //   return res.status(404).send({
+    //     status: false,
+    //     msg: "blog not found / Maybe Bcz (its deleted or Not Published)",
+    //   });
+    //}
     return res.status(200).send({ Status: true, data: savedData });
   } catch (err) {
     return res
@@ -206,10 +207,12 @@ const deleteBlogById = async function (req, res) {
   }
 };
 
-// -------------DELETE BY QUERY PARAMS --------------
+// // -------------DELETE BY QUERY PARAMS --------------
+//new---------------new--------new
 const deleteblog = async function (req, res) {
   try {
-    //new---------------new--------new
+    let Token = req.headers["x-api-key"];
+    //Verifying Token
     let blogData = await blogModel.find({
       $or: [
         {
@@ -221,27 +224,124 @@ const deleteblog = async function (req, res) {
         { isPublished: req.query.isPublished },
       ],
     });
+    //.select({ authorId: 1, _id: 0 });
+
+    //if No FilterSelected or Entre the gibrish Data
     if (blogData == 0) {
-      return res.status(400).send({ status: false, msg: "No Data Matched" });
+      return res
+        .status(404)
+        .send({ status: false, msg: "Filter is required!" });
     }
+
+    //verifying if No authorId is Selected
+    try {
+      var tokenVerify = jwt.verify(Token, "FunctionUP-Project1-Group30");
+    } catch (err) {
+      return res.status(404).send({ status: false, msg: "Token is Not Valid" });
+    }
+
+    // tokenVerify = jwt.verify(Token, "FunctionUP-Project1-Group30");
+    let Id = tokenVerify["UserId"];
+    //finding Valid Owner
+    let filterOwnerOwnOfBlog;
+    for (let i = 0; i < blogData.length; i++) {
+      if (Id == blogData[i].authorId) {
+        filterOwnerOwnOfBlog = blogData[i].authorId;
+      }
+    }
+
+    //updating Document
     let isDeletedTrue = await blogModel.updateMany(
-      { blogData },
-      { isDeleted: true },
+      {
+        authorId: filterOwnerOwnOfBlog,
+        $or: [
+          { category: req.query.category },
+          { tags: req.query.tags },
+          { subcategory: req.query.subcategory },
+          { isPublished: req.query.isPublished },
+          { authorId: req.query.authorId },
+        ],
+      },
+      { isDeleted: true, deletedAt: dateToday.format("YYYY-MM-DD") },
       { new: true }
     );
-
     return res.status(200).send({ status: true, data: isDeletedTrue });
   } catch (error) {
     return res.status(500).send({ status: false, error: error.message });
   }
-  //new---------------new--------new
-  //new---------------new--------new
 };
+
+//new---------------new--------new
+//};
+
+//-----------Temp------------------------
+exports.deleteByQuery = async function (req, res) {
+  try {
+    let filterdata = { isDeleted: false, authorId: req.authorId };
+    let { category, subcategory, tags, authorId } = req.query;
+
+    if (authorId) {
+      if (!mongoose.isValidObjectId(req.query.authorId))
+        return res
+          .status(400)
+          .send({ Status: false, message: "Please enter valid authorId ⚠️" });
+      else filterdata.authorId = authorId;
+    }
+
+    if (category) {
+      filterdata.category = category;
+    } //
+
+    if (subcategory) {
+      filterdata.subcategory = subcategory;
+    }
+
+    if (tags) {
+      filterdata.tags = tags;
+    }
+
+    let data = await blogModel.findOne(filterdata);
+
+    if (!data)
+      return res
+        .status(404)
+        .send({ status: false, msg: "No Record Found or invalid Id ⚠️" });
+
+    if (data.authorId._id.toString() !== req.authorId)
+      return res
+        .status(401)
+        .send({ Status: false, message: "Authorisation Failed ⚠️" });
+
+    let updatedData = await blogModel.updateOne(
+      filterdata,
+      { isDeleted: true },
+      { new: true }
+    );
+    return res.status(200).send({ status: true, msg: "data is deleted ⚠️" });
+  } catch (error) {
+    res.status(500).send({ status: false, error: error.message });
+  }
+};
+//------------------------temp-----------------
 
 module.exports.getblogs = getblogs;
 module.exports.deleteBlogById = deleteBlogById;
 module.exports.deleteblog = deleteblog;
+// module.exports.deleteByQuery=deleteByQuery
 
+//=====================================================
+// //finding Data With OwnerId and His Requirments
+// let filterBlogs = await blogModel.find({
+//   authorId: filterOwnerOwnOfBlog,
+//   $or: [
+//     { category: req.query.category },
+//     { tags: req.query.tags },
+//     { subcategory: req.query.subcategory },
+//     { isPublished: req.query.isPublished },
+//     { authorId: req.query.authorId },
+//   ],
+// });
+//==================================
 // let authorId = req.query.authorId;
 //     let categoryname = req.query.category;
 //     let tagname = req.query.tags;
@@ -296,3 +396,82 @@ module.exports.deleteblog = deleteblog;
 //     { new: true }
 //   );
 // }
+
+//==============================
+//new---------------new--------new
+//let obj = {};
+//     // by author Id
+//     let authorId = req.query.authorId;
+//     let category = req.query.category;
+//     let tags = req.query.tags;
+//     let subcategory = req.query.subcategory;
+//     let isPublished = req.query.isPublished;
+//     console.log(authorId);
+//     // applying filters
+
+//     if (authorId) {
+//       obj.authorId = authorId; //if authorID (present) then  creating object(key ,value pair) inside obj
+//     }
+//     if (category) {
+//       obj.category = category;
+//     }
+//     if (tags) {
+//       obj.tags = tags;
+//     }
+//     if (subcategory) {
+//       obj.subcategory = subcategory;
+//     }
+//     if (isPublished) {
+//       obj.isPublished = isPublished;
+//     }
+//-----------------------------------
+
+//==========================================
+//   try {
+//     let obj = {};
+//     // by author Id
+//     let authorId = req.query.authorId;
+//     let category = req.query.category;
+//     let tags = req.query.tags;
+//     let subcategory = req.query.subcategory;
+//     let isPublished = req.query.isPublished;
+//     console.log(authorId);
+//     // applying filters
+
+//     if (authorId) {
+//       obj.authorId = authorId; //if authorID (present) then  creating object(key ,value pair) inside obj
+//     }
+//     if (category) {
+//       obj.category = category;
+//     }
+//     if (tags) {
+//       obj.tags = tags;
+//     }
+//     if (subcategory) {
+//       obj.subcategory = subcategory;
+//     }
+//     if (isPublished) {
+//       obj.isPublished = isPublished;
+//     }
+//     if (Object.values(obj) == 0) {
+//       return res.status(404).send({ status: false, msg: "No Data Matched" });
+//     }
+//     //console.log(typeof obj);
+//     let newd = await blogModel.find(obj);
+//     if (newd.length == 0) {
+//       return res.status(404).send({ status: false, msg: "blogs not found" });
+//     }
+//     console.log(newd);
+
+//     let savedData = await blogModel.updateMany(
+//       { obj },
+//       { isDeleted: true },
+//       { new: true }
+//     );
+//     return res.status(200).send({ status: true, data: savedData });
+//   } catch (error) {
+//     return res.status(500).send({ status: false, error: error.message });
+//   }
+// };
+//};
+// const deleteblog = async function (req, res) {

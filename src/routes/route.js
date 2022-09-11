@@ -27,14 +27,14 @@ router.post(
 router.get(
   "/blogs",
   middleware.headerCheck,
-  middleware.authentication,
+  // middleware.authentication,
   blogController.getblogs
 );
 
 //Updating Blogs
 router.put(
   "/blogs/:blogId",
-  middleware.authentication,
+  middleware.headerCheck,
   middleware.blogIdPlusAuthorIdCheck,
   blogController.blogsUpdate
 );
@@ -52,7 +52,7 @@ router.delete(
   "/blogs",
   middleware.headerCheck,
   //middleware.authentication,
-  blogController.deleteblog
+  blogController.deleteByQuery
 );
 
 //login UserByEmailAndPassword
