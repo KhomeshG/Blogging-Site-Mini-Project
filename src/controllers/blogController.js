@@ -190,67 +190,45 @@ const deleteBlogById = async function (req, res) {
 // -------------DELETE BY QUERY PARAMS --------------
 const deleteblog = async function (req, res) {
   try {
+    let obj = {};
+    // filter
     let authorId = req.query.authorId;
-    let categoryname = req.query.category;
-    let tagname = req.query.tags;
-    let subcategoryname = req.query.subcategory;
-    let unpublished = req.query.isPublished;
+    let category = req.query.category;
+    let tags = req.query.tags;
+    let subcategory = req.query.subcategory;
+    let isPublished = req.query.isPublished;
+    let Token = req.headers["x-api-key"];
+    let tokenVerify = jwt.verify(Token, "FunctionUP-Project1-Group30");
 
-    //let Blog = await blogModel.findById(authorId);
-
-    if (authorId) {
-      let deleteblog = await blogModel.updateMany(
-        { authorId: authorId },
-        { isDeleted: true },
-        { new: true }
-      );
-
-      return res.status(200).send({ status: true, data: deleteblog });
+    // applying filters
+    if (tokenVerify) {
+      obj.authorId = tokenVerify.userId; //if authorID (present) then  creating object(key ,value pair) inside obj
+    }
+    if (category) {
+      obj.category = category;
+    }
+    if (tags) {
+      obj.tags = tags;
+    }
+    if (subcategory) {
+      obj.subcategory = subcategory;
+    }
+    if (isPublished) {
+      obj.isPublished = isPublished;
     }
 
-    if (categoryname) {
-      let deleteblog = await blogModel.updateMany(
-        { category: categoryname },
-        { isDeleted: true },
-        { new: true }
-      );
-
-      return res.status(200).send({ status: true, data: deleteblog });
+    if (Object.keys(obj).length === 0) {
+      return res.status(404).send({ status: false, msg: "blogs not found" });
     }
 
-    if (tagname) {
-      let deleteblog = await blogModel.updateMany(
-        { tags: tagname },
-        { isDeleted: true },
-        { new: true }
-      );
-
-      return res.status(200).send({ status: true, data: deleteblog });
-    }
-
-    if (subcategoryname) {
-      let deleteblog = await blogModel.updateMany(
-        { subcategory: subcategoryname },
-        { isDeleted: true },
-        { new: true }
-      );
-
-      return res.status(200).send({ status: true, data: deleteblog });
-    }
-
-    if (unpublished) {
-      let deleteblog = await blogModel.updateMany(
-        { isPublished: unpublished },
-        { isDeleted: true },
-        { new: true }
-      );
-
-      return res.status(200).send({ status: true, data: deleteblog });
-    } else {
-      return res.status(404).send("blog document doesn't exist");
-    }
+    let savedData = await blogModel.updateMany(
+      obj,
+      { isDeleted: true },
+      { new: true }
+    );
+    return res.status(200).send({ status: true, data: savedData });
   } catch (error) {
-    return res.status(500).send({ error: error.message });
+    return res.status(500).send({ status: false, error: error.message });
   }
 };
 

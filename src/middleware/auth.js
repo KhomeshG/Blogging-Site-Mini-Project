@@ -18,15 +18,35 @@ exports.headerCheck = function (req, res, next) {
 exports.authentication = function (req, res, next) {
   try {
     let Token = req.headers["x-api-key"];
+    if (!Token)
+      return res.status(400).send({ status: false, msg: "login is requred" });
+
     let tokenVerify = jwt.verify(Token, "FunctionUP-Project1-Group30");
 
-    if (tokenVerify.UserId !== req.query.authorId) {
-      return res.status(404).send({ msg: "User is Imposter" });
-    } else {
-      next();
+    if (req.query.authorId) {
+      if (tokenVerify.userId !== req.query.authorId) {
+        return res
+          .status(403)
+          .send({ status: false, msg: "User is not logged in" });
+      } else {
+        return next();
+      }
     }
+
+    //for create blog
+    if (req.body.authorId) {
+      if (tokenVerify.userId !== req.body.authorId) {
+        return res.status(403).send({
+          status: false,
+          msg: "author was not created and authorId is invaild !!!",
+        });
+      } else {
+        return next();
+      }
+    }
+    return next();
   } catch (err) {
-    res.status(500).send({ msg: "Server Error 500" });
+    return res.status(500).send({ status: false, msg: "Server Error 500" });
   }
 };
 
