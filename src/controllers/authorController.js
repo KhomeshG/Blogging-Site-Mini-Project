@@ -3,7 +3,7 @@ const authorModel = require("../models/authorModel");
 const isValid = function (value) {
   if (typeof value === "undefined" || value === Number || value === null)
     return false;
-  //if (typeof value === "string" && value.trim().length === 0) return false
+  if (typeof value === "string" && value.trim().length === 0) return false;
   return true;
 };
 
@@ -39,12 +39,12 @@ const authors = async function (req, res) {
       });
       return;
     }
-    let emailCheck = await authorModel.findOne(req.email);
-    if (emailCheck) {
-      res
-        .status(409)
-        .send({ status: false, msg: "This email already exists." });
-    }
+    // let emailCheck = await authorModel.findOne(req.email);
+    // if (!emailCheck) {
+    //   res
+    //     .status(409)
+    //     .send({ status: false, msg: "This email already exists." });
+    // }
 
     //Validating password(Madtory)
     if (!isValid(data.password)) {

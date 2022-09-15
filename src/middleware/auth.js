@@ -64,7 +64,7 @@ exports.autharization = async function (req, res, next) {
     else {
       if (Object.keys(req.query).length == 0) {
         return res
-          .status(403)
+          .status(400)
           .send({ status: false, msg: "Need Atleast One Filter!!" });
       }
       //Query Part(Filteration Part)
@@ -91,7 +91,7 @@ exports.autharization = async function (req, res, next) {
     return res.status(500).send({
       status: false,
       Eroor: err.message,
-      msg: "Server Error 500  autheri!!",
+      msg: "Server Error 500  !",
     });
   }
 };
